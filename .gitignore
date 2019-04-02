@@ -1,0 +1,10 @@
+#文件夹
+__pycache__
+.vscode
+
+#根目录的文件
+trainer
+test.py
+
+#子目录的文件
+*.f

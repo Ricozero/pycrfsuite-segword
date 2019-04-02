@@ -1,0 +1,75 @@
+#coding=utf-8
+from itertools import chain
+from sklearn.metrics import classification_report
+import pycrfsuite
+import time
+import os
+from collections import Counter
+
+import segword
+
+##### 训练 #####
+print('开始读取训练集...')
+start = time.process_time()
+train_sents = segword.read_seg_file('train/pku_training.utf8')
+end = time.process_time()
+print('用时' + str(end - start) + 's')
+#print('\n')
+
+#print(train_sents[0])
+#print(segword.sent2features(train_sents[0])[0])
+
+#判断训练文件是否存在，存在则手动决定是否训练
+if os.path.exists('trainer'):
+    while 1:
+        answer = input('训练模型已存在，是否重新训练？（y/n）')
+        if answer == 'y' or answer == 'Y':
+            do = True
+            break
+        elif answer == 'n' or answer == 'N':
+            do = False
+            break
+else:
+    do = True
+
+if do:
+    print('开始训练...')
+    start = time.process_time()
+    trainer = segword.train(train_sents)
+    end = time.process_time()
+    print('用时' + str(end - start) + 's')
+    print(len(trainer.logparser.iterations))
+    print(trainer.logparser.last_iteration)
+
+tagger = pycrfsuite.Tagger()
+tagger.open('trainer')
+
+##### 测试 #####
+test_sents = segword.read_seg_file('test/pku_test_gold.utf8')
+X_test = [segword.sent2features(s) for s in test_sents]
+y_test = [segword.sent2labels(s) for s in test_sents]
+
+example_sent = test_sents[0]
+print(' '.join(segword.sent2tokens(example_sent)), end='\n\n')
+
+print(example_sent)
+print("Predicted:", ' '.join(tagger.tag(segword.sent2features(example_sent))))
+print("Correct:  ", ' '.join(segword.sent2labels(example_sent)))
+
+##### 评估 #####
+y_pred = [tagger.tag(xseq) for xseq in X_test]
+print(segword.bmes_classification_report(y_test, y_pred))
+
+info = tagger.info()
+
+print("Top likely transitions:")
+segword.print_transitions(Counter(info.transitions).most_common(15))
+
+print("\nTop unlikely transitions:")
+segword.print_transitions(Counter(info.transitions).most_common()[-15:])
+
+print("Top positive:")
+segword.print_state_features(Counter(info.state_features).most_common(20))
+
+print("\nTop negative:")
+segword.print_state_features(Counter(info.state_features).most_common()[-20:])
