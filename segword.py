@@ -14,6 +14,9 @@ def read_seg_file(filename):
     sents = segfile.readlines()
     #写成格式化临时文件
     for sent in sents:
+        #为msr的训练集做准备
+        if sent == ' \n' or sent == '\n':
+            continue
         pre = 0 #前一个词的尾部，当前词的开始
         for cur, char in enumerate(sent):
             if char == ' ' and sent[cur - 1] != ' ':
@@ -56,6 +59,18 @@ def read_seg_file(filename):
     formfile.close()
     return train_sents
 
+def write_seg_file(sents, filename):
+    wfile = open(filename, 'w', encoding = 'utf-8')
+    for sent in sents:
+        for c in sent:
+            if c[1] == 'S' or c[1] =='B' or c[1] == 'M':
+                wfile.write(c[0])
+            elif c[1] == 'E':
+                wfile.write(c[0] + '  ')
+            else:
+                print('Invalid tuple: ', + c)
+        wfile.write('\n')
+
 def ispunct(char):
     punct_cn = '！？｡＂＃＄％＆＇（）＊＋，－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟〰〾〿–—‘’‛“”„‟…‧﹏.'
     punct_en = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
@@ -65,6 +80,68 @@ def ispunct(char):
         return False
 
 def word2features(sent, i):
+    '''
+    pku训练集+测试集
+                       precision    recall  f1-score   support
+
+                B       0.93      0.96      0.94     56883
+                E       0.93      0.96      0.95     56883
+                M       0.84      0.78      0.81     11479
+                S       0.95      0.91      0.93     47489
+
+    micro     avg       0.93      0.93      0.93    172734
+    macro     avg       0.91      0.90      0.91    172734
+    weighted  avg       0.93      0.93      0.93    172734
+    samples   avg       0.93      0.93      0.93    172734
+    '''
+    word = sent[i][0]
+    features = [
+        'bias',
+        word
+    ]
+    if i > 0:
+        wordm1 = sent[i-1][0]
+        features.extend([
+             wordm1 + word
+        ])
+        if i > 1:
+            wordm2 = sent[i-2][0]
+            features.extend([
+                wordm2 + wordm1 + word
+            ])
+    else:
+        features.append('BOS')
+
+    if i < len(sent)-1:
+        wordp1 = sent[i+1][0]
+        features.extend([
+            word + wordp1
+        ])
+        if i < len(sent)-2:
+            wordp2 = sent[i+2][0]
+            features.extend([
+                word + wordp1 + wordp2
+            ])
+    else:
+        features.append('EOS')
+
+    return features
+
+def word2features0(sent, i):
+    '''
+    pku训练集+测试集
+                    precision    recall  f1-score   support
+
+                B       0.89      0.91      0.90     56883
+                E       0.89      0.91      0.90     56883
+                M       0.65      0.67      0.66     11479
+                S       0.90      0.84      0.87     47489
+
+    micro     avg       0.87      0.87      0.87    172734
+    macro     avg       0.83      0.83      0.83    172734
+    weighted  avg       0.87      0.87      0.87    172734
+    samples   avg       0.87      0.87      0.87    172734
+    '''
     word = sent[i][0]
     features = [
         'bias',

@@ -1,5 +1,4 @@
 #coding=utf-8
-from itertools import chain
 from sklearn.metrics import classification_report
 import pycrfsuite
 import time
@@ -8,10 +7,15 @@ from collections import Counter
 
 import segword
 
+#用msr训练，tagger.info()会报错
+#trainfile = 'train/msr_training.utf8'
+#testfile = 'test/msr_test_gold.utf8'
+trainfile = 'train/pku_training.utf8'
+testfile = 'test/pku_test_gold.utf8'
 ##### 训练 #####
 print('开始读取训练集...')
 start = time.process_time()
-train_sents = segword.read_seg_file('train/pku_training.utf8')
+train_sents = segword.read_seg_file(trainfile)
 end = time.process_time()
 print('用时' + str(end - start) + 's')
 #print('\n')
@@ -45,7 +49,7 @@ tagger = pycrfsuite.Tagger()
 tagger.open('trainer')
 
 ##### 测试 #####
-test_sents = segword.read_seg_file('test/pku_test_gold.utf8')
+test_sents = segword.read_seg_file(testfile)
 X_test = [segword.sent2features(s) for s in test_sents]
 y_test = [segword.sent2labels(s) for s in test_sents]
 
@@ -73,3 +77,6 @@ segword.print_state_features(Counter(info.state_features).most_common(20))
 
 print("\nTop negative:")
 segword.print_state_features(Counter(info.state_features).most_common()[-20:])
+
+##### 输出 #####
+segword.write_seg_file(test_sents, testfile + '.r')
