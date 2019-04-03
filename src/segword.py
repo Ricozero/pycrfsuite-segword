@@ -63,12 +63,15 @@ def write_seg_file(sents, filename):
     wfile = open(filename, 'w', encoding = 'utf-8')
     for sent in sents:
         for c in sent:
-            if c[1] == 'S' or c[1] =='B' or c[1] == 'M':
+            if c[1] == 'S':
+                wfile.write(c[0] + '  ')
+            elif c[1] =='B' or c[1] == 'M':
                 wfile.write(c[0])
             elif c[1] == 'E':
                 wfile.write(c[0] + '  ')
             else:
-                print('Invalid tuple: ', + c)
+                print('Invalid tuple: ', end = '')
+                print(c)
         wfile.write('\n')
 
 def ispunct(char):
@@ -82,7 +85,20 @@ def ispunct(char):
 def word2features(sent, i):
     '''
     pku训练集+测试集
-                       precision    recall  f1-score   support
+                    precision    recall  f1-score   support
+
+                B       0.94      0.96      0.95     56883
+                E       0.94      0.96      0.95     56883
+                M       0.84      0.78      0.81     11479
+                S       0.95      0.92      0.93     47489
+
+    micro avg           0.94      0.94      0.94    172734
+    macro avg           0.92      0.91      0.91    172734
+    weighted avg        0.94      0.94      0.94    172734
+    samples avg         0.94      0.94      0.94    172734
+
+    pku训练集+测试集（无-1,-2,+1,+2）
+                    precision    recall  f1-score   support
 
                 B       0.93      0.96      0.94     56883
                 E       0.93      0.96      0.95     56883
@@ -102,12 +118,12 @@ def word2features(sent, i):
     if i > 0:
         wordm1 = sent[i-1][0]
         features.extend([
-             wordm1 + word
+             '-1:' + wordm1 + word
         ])
         if i > 1:
             wordm2 = sent[i-2][0]
             features.extend([
-                wordm2 + wordm1 + word
+                '-2' + wordm2 + wordm1 + word
             ])
     else:
         features.append('BOS')
@@ -115,12 +131,12 @@ def word2features(sent, i):
     if i < len(sent)-1:
         wordp1 = sent[i+1][0]
         features.extend([
-            word + wordp1
+            '+1' + word + wordp1
         ])
         if i < len(sent)-2:
             wordp2 = sent[i+2][0]
             features.extend([
-                word + wordp1 + wordp2
+                '+2' + word + wordp1 + wordp2
             ])
     else:
         features.append('EOS')

@@ -7,11 +7,15 @@ from collections import Counter
 
 import segword
 
+#训练模型文件
+trainerfile = 'trainer'
+
 #用msr训练，tagger.info()会报错
 #trainfile = 'train/msr_training.utf8'
 #testfile = 'test/msr_test_gold.utf8'
 trainfile = 'train/pku_training.utf8'
 testfile = 'test/pku_test_gold.utf8'
+
 ##### 训练 #####
 print('开始读取训练集...')
 start = time.process_time()
@@ -20,11 +24,11 @@ end = time.process_time()
 print('用时' + str(end - start) + 's')
 #print('\n')
 
-#print(train_sents[0])
-#print(segword.sent2features(train_sents[0])[0])
+print(train_sents[0])
+print(segword.sent2features(train_sents[0])[0])
 
 #判断训练文件是否存在，存在则手动决定是否训练
-if os.path.exists('trainer'):
+if os.path.exists(trainerfile):
     while 1:
         answer = input('训练模型已存在，是否重新训练？（y/n）')
         if answer == 'y' or answer == 'Y':
@@ -46,7 +50,7 @@ if do:
     print(trainer.logparser.last_iteration)
 
 tagger = pycrfsuite.Tagger()
-tagger.open('trainer')
+tagger.open(trainerfile)
 
 ##### 测试 #####
 test_sents = segword.read_seg_file(testfile)
@@ -56,7 +60,6 @@ y_test = [segword.sent2labels(s) for s in test_sents]
 example_sent = test_sents[0]
 print(' '.join(segword.sent2tokens(example_sent)), end='\n\n')
 
-print(example_sent)
 print("Predicted:", ' '.join(tagger.tag(segword.sent2features(example_sent))))
 print("Correct:  ", ' '.join(segword.sent2labels(example_sent)))
 
@@ -80,3 +83,4 @@ segword.print_state_features(Counter(info.state_features).most_common()[-20:])
 
 ##### 输出 #####
 segword.write_seg_file(test_sents, testfile + '.r')
+print('结果文件已保存为' + testfile + '.r')

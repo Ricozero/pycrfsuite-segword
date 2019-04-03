@@ -2,10 +2,9 @@
 __pycache__
 .vscode
 
-#根目录的文件
-trainer
-test.py
+#单个文件
+/trainer
 
-#子目录的文件
+#通配文件
 *.f
 *.r
