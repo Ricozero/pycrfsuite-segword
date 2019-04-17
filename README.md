@@ -1,5 +1,7 @@
 # 基于CRF的分词
 
+第二次作业已对此进行大幅改进，并加入词性标注：[pycrfsuite-segpos](https://github.com/Ricozero/pycrfsuite-segpos)
+
 中文信息处理自动分词作业，因为不可以使用CRF++，最后用了pycrfsuite.
 
 ## 文件说明
